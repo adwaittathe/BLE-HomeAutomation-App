@@ -11,8 +11,9 @@ import CoreBluetooth
 
 class ViewController: UIViewController {
     
+        @IBOutlet weak var OnOffSegment: UISegmentedControl!
     @IBOutlet weak var temperatureLabel: UILabel!
-    let bulbServiceCBUUID = CBUUID(string: "DF75AB9A-7B42-F39F-116A-B659A643A75C")
+    let bulbServiceCBUUID = CBUUID(string: "DFE60419-82DE-CFEB-02CD-AA1414772848")
     let bulbCharacteristicUUID = CBUUID(string: "FB959362-F26E-43A9-927C-7E17D8FB2D8D")
     let tempratureCharacteristicUUID   = CBUUID(string: "0CED9345-B31F-457D-A6A2-B3DB9B03E39A")
     let beepCharateristicUUID = CBUUID(string: "EC958823-F26E-43A9-927C-7E17D8F32A90")
@@ -30,20 +31,27 @@ class ViewController: UIViewController {
         
     }
 
-    @IBAction func offButtonTapped(_ sender: UIButton) {
-        print("Off")
-        let valueString = ("0" as NSString).data(using: String.Encoding.utf8.rawValue)
-        print(valueString?.first)
-        bulbPeripheral.writeValue(valueString!, for: bulbCharacteristic!, type: CBCharacteristicWriteType.withResponse)
-    }
+  
     
-    @IBAction func onButtonTapped(_ sender: UIButton) {
-        print("On")
-        let valueString = ("1" as NSString).data(using: String.Encoding.utf8.rawValue)
-        print(valueString!.first)
-        bulbPeripheral.writeValue(valueString!, for: bulbCharacteristic!, type: CBCharacteristicWriteType.withResponse)
-    }
     
+    @IBAction func onOffSegmentControlTapped(_ sender: UISegmentedControl) {
+        print(sender.selectedSegmentIndex)
+        if(sender.selectedSegmentIndex == 1)
+        {
+            print("Off")
+             
+            var parameter = NSInteger(0)
+            let data = NSData(bytes: &parameter, length: 1)
+             bulbPeripheral.writeValue(data as Data, for: bulbCharacteristic!, type: .withResponse)
+            
+        }else
+        {
+            print("On")
+            var parameter = NSInteger(1)
+                   let data = NSData(bytes: &parameter, length: 1)
+                   bulbPeripheral.writeValue(data as Data, for: bulbCharacteristic!, type: .withResponse)
+        }
+    }
     @IBAction func beepButtonTapped(_ sender: UIButton) {
         let valueString = ("1" as NSString).data(using: String.Encoding.utf8.rawValue)
         bulbPeripheral.writeValue(valueString!, for: beepCharacteristic!, type: CBCharacteristicWriteType.withResponse)
@@ -142,9 +150,12 @@ extension ViewController: CBPeripheralDelegate{
         switch characteristic.uuid {
           case bulbCharacteristicUUID:
             bulbCharacteristic = characteristic
+            
             print("Bulb \(characteristic.value?.first)" ?? "no value")
             if let string = String(bytes: characteristic.value!, encoding: .utf8) {
                 print("Bulb : \(string)")
+                OnOffSegment.selectedSegmentIndex = 1 - Int(string)!
+                
             } else {
                 print("not a valid UTF-8 sequence")
             }
